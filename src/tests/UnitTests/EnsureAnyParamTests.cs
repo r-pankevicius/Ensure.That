@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using EnsureThat;
+using FluentAssertions;
 using Xunit;
 
 // ReSharper disable ExpressionIsAlwaysNull
@@ -76,6 +77,52 @@ namespace UnitTests
                 () => Ensure.Any.IsNotDefault(value, ParamName),
                 () => EnsureArg.IsNotDefault(value, ParamName),
                 () => Ensure.That(value, ParamName).IsNotDefault());
+        }
+
+        // This test passes for me: ex.Message is "Value can not be null. (Parameter 'notNullString')"
+        [Fact]
+        public void IsNotNull_WhenRefTypeIsNullAndParameterNameGiven_ThrowsArgumentNullExceptionWithParamName()
+        {
+            static void SomeFunction(string notNullString)
+            {
+                EnsureArg.IsNotNull(notNullString, nameof(notNullString));
+            }
+
+            try
+            {
+                SomeFunction(null);
+            }
+            catch (ArgumentNullException ex)
+            {
+                ex.Message.Should().Contain("notNullString",
+                    because: "Parameter name `notNullString` was not mentioned in exception message.");
+                return;
+            }
+
+            Assert.False(false, "ArgumentNullException was not thrown");
+        }
+
+        // This test fails for me: ex.Message is "System.ArgumentNullException : Value can not be null."
+        [Fact]
+        public void IsNotNull_WhenRefTypeIsNullAndParameterNameNotGiven_ThrowsArgumentNullExceptionWithParamName()
+        {
+            static void SomeFunction(string notNullString)
+            {
+                EnsureArg.IsNotNull(notNullString);
+            }
+
+            try
+            {
+                SomeFunction(null);
+            }
+            catch (ArgumentNullException ex)
+            {
+                ex.Message.Should().Contain("notNullString",
+                    because: "Parameter name `notNullString` was not mentioned in exception message.");
+                return;
+            }
+
+            Assert.False(false, "ArgumentNullException was not thrown");
         }
     }
 }
