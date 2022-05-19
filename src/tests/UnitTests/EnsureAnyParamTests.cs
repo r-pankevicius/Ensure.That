@@ -147,5 +147,57 @@ namespace UnitTests
         }
 
         #endregion
+
+        #region CallerArgumentExpression tests
+
+        private class Person
+        {
+            public string Name { get; set; }
+        }
+
+        static void CheckPersonNameTraditional(Person person)
+        {
+            EnsureArg.IsNotNull(person, nameof(person));
+            EnsureArg.IsNotNull(person.Name, $"{nameof(person)}.{nameof(person.Name)}");
+        }
+
+        [Fact]
+        public void Fail_WhenPersonNameIsNull_Traditional()
+        {
+            // System.ArgumentNullException : Value can not be null. (Parameter 'person.Name')
+            CheckPersonNameTraditional(new Person { });
+        }
+
+        static void CheckPersonSuggested(Person person)
+        {
+            CheckArgNotNullWithCallerArgumentExpression(person);
+            CheckArgNotNullWithCallerArgumentExpression(person.Name);
+        }
+
+        [Fact]
+        public void Fail_WhenPersonIsNull()
+        {
+            // System.ArgumentNullException : Value cannot be null. (Parameter 'person')
+            CheckPersonSuggested(null);
+        }
+
+        [Fact]
+        public void Fail_WhenPersonNameIsNull()
+        {
+            // System.ArgumentNullException : Value cannot be null. (Parameter 'person.Name')
+            CheckPersonSuggested(new Person { });
+        }
+
+        private static void CheckArgNotNullWithCallerArgumentExpression<T>(
+            T notNullArg,
+            [System.Runtime.CompilerServices.CallerArgumentExpression("notNullArg")]
+            string argumentExpression = null)
+            where T : class
+        {
+            if (notNullArg is null)
+                throw new ArgumentNullException(argumentExpression);
+        }
+
+        #endregion
     }
 }
