@@ -124,5 +124,28 @@ namespace UnitTests
 
             Assert.False(false, "ArgumentNullException was not thrown");
         }
+
+        #region CallerMemberName test
+        //   Message: 
+        // System.ArgumentNullException : Value cannot be null. (Parameter 'Test42')
+
+        [Fact]
+        public void Test42()
+        {
+            void SomeFunction(string notNullString)
+            {
+                CheckArgNotNull(notNullString);
+            }
+
+            SomeFunction(null);
+        }
+
+        private static void CheckArgNotNull(string notNullString, [System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
+        {
+            if (notNullString is null)
+                throw new ArgumentNullException(memberName);
+        }
+
+        #endregion
     }
 }
